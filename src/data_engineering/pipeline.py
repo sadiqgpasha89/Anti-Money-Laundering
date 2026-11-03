@@ -20,25 +20,34 @@ class DataPipeline:
         """
         Execute full data engineering pipeline:
         1. Ingest raw transaction (On-Prem OpenStack)
-        2. Hydrate Feature Store (Online & Offline windows)
-        3. Update Knowledge Graph topology
-        4. Tokenize PII for cross-cloud GCP transit
+        2. Tokenize PII for cross-cloud GCP transit
+        3. Update Knowledge Graph topology (keyed by token)
+        4. Hydrate Feature Store (keyed by token)
         5. Record Cryptographic Audit Block
         6. Sink to Lakehouse
+
+        The graph and the feature store are keyed by the tokenized identifiers, the same identifiers
+        that Tier 2 and the Tier 3 agents see in the alert. Keying them by raw identifiers would leave
+        every lookup made with a tokenized transaction empty. Tier 1 keeps using the raw transaction
+        because sanctions screening needs cleartext names and stays on-premises.
 
         Returns: (raw_txn, tokenized_txn, online_features)
         """
         t0 = time.perf_counter()
         self._processed_count += 1
 
-        # 1. Update Knowledge Graph with on-prem cleartext relationships
-        aml_graph.add_transaction(raw_txn)
+        # 1. Tokenize & Scrub PII for Cloud Interconnect Transit
+        tokenized_txn = pii_tokenizer.tokenize_transaction(raw_txn)
 
-        # 2. Hydrate rolling Feature Store
-        feature_store.record_transaction(raw_txn)
-        online_features = feature_store.get_online_features(raw_txn)
+        # 2. Update Knowledge Graph with pseudonymized relationships (tokens are deterministic,
+        #    so one customer is still one node across transactions)
+        aml_graph.add_transaction(tokenized_txn)
 
-        # 3. Cryptographic Audit Record: Event Ingress
+        # 3. Hydrate rolling Feature Store
+        feature_store.record_transaction(tokenized_txn)
+        online_features = feature_store.get_online_features(tokenized_txn)
+
+        # 4. Cryptographic Audit Record: Event Ingress (the ledger stays on-prem, so it keeps raw account ids)
         audit_ledger.record_event(
             event_type="EVENT_INGRESS",
             payload={
@@ -51,9 +60,6 @@ class DataPipeline:
             },
             actor="INGESTION_FABRIC",
         )
-
-        # 4. Tokenize & Scrub PII for Cloud Interconnect Transit
-        tokenized_txn = pii_tokenizer.tokenize_transaction(raw_txn)
 
         # 5. Sink to Lakehouse
         lakehouse_sink.sink_transaction(tokenized_txn)

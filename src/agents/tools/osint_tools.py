@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Dict, Any, List, Optional
 import numpy as np
 from src.core.config import settings
+from src.data_engineering.tokenizer import pii_tokenizer
 
 
 class OSINTTools:
@@ -36,7 +37,8 @@ class OSINTTools:
         Simulates Vertex AI Vector Search.
         """
         results = []
-        name_clean = entity_name.upper().strip()
+        # Alerts carry tokenized names; resolve the token before matching against media records
+        name_clean = pii_tokenizer.detokenize(entity_name).upper().strip()
 
         for art in self._articles:
             # Check direct entity mention
