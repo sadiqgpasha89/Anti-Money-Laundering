@@ -18,11 +18,11 @@ flowchart TB
         TOK["PII tokenization gateway<br/>HMAC-SHA256 tokens · vault stays on-prem"]
         HOLD["Ledger HOLD"]
         KAFKA --> ING
-        ING --> T1
-        ING --> FS
-        ING --> KG
+        ING -- "raw txn (cleartext stays here)" --> T1
+        ING --> TOK
+        TOK -- "tokenized txn" --> FS
+        TOK -- "tokenized txn" --> KG
         T1 -- "hard stop" --> HOLD
-        T1 -- "passed" --> TOK
     end
 
     subgraph GCP["Google Cloud enclave (tokens only)"]
@@ -110,9 +110,11 @@ sequenceDiagram
     participant L as Audit ledger
 
     SRC->>API: POST /api/transactions/ingest
-    API->>PIPE: parse, update graph, hydrate features
+    API->>PIPE: parse and normalize
+    PIPE->>PIPE: tokenize PII
+    PIPE->>PIPE: update graph and hydrate features (keyed by token)
     PIPE->>L: EVENT_INGRESS
-    PIPE->>PIPE: tokenize PII, sink to lakehouse
+    PIPE->>PIPE: sink tokenized txn to lakehouse
     PIPE-->>API: raw txn + tokenized txn + features
 
     API->>T1: evaluate(raw txn)
@@ -137,7 +139,7 @@ sequenceDiagram
             else Normal
                 SW->>SUP: execute_investigation()
                 SUP->>SUP: formulate 5-task DAG
-                SUP->>AG: entity resolution (UBO, shared devices)
+                SUP->>AG: entity resolution (UBO, shared devices, tokens resolved in on-prem tools)
                 SUP->>AG: forensics (dwell, pass-through, structuring)
                 SUP->>AG: OSINT (adverse media, TBML) using resolved controllers
                 AG-->>SUP: findings
