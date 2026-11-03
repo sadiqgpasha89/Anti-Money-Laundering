@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sentinel AML | Hybrid Architecture: Deterministic Rules, ML & Multi-Agent Swarm</title>
+  <meta name="description" content="Production-grade Hybrid Anti-Money Laundering (AML) platform combining OpenStack On-Premises low-latency rules with Google Cloud Platform (GCP) Machine Learning and Cognitive Multi-Agent Systems.">
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+
+  <!-- Top Header with Hybrid Cloud Telemetry -->
+  <header class="app-header">
+    <div class="brand-section">
+      <div class="brand-badge">S</div>
+      <div class="brand-title">
+        <h1>SENTINEL AML HYBRID PLATFORM</h1>
+        <p>RETE RULES &bull; ENSEMBLE ML & GNN &bull; COGNITIVE AGENT SWARM</p>
+      </div>
+    </div>
+
+    <div class="cloud-telemetry-bar">
+      <div class="cloud-pill" id="openstack-status">
+        <div class="status-dot green"></div>
+        <span>OPENSTACK (ON-PREM): ACTIVE</span>
+      </div>
+      <div class="cloud-pill" id="gcp-status">
+        <div class="status-dot blue"></div>
+        <span>GCP GKE + VERTEX: CONNECTED</span>
+      </div>
+      <div class="cloud-pill" id="audit-status">
+        <div class="status-dot green"></div>
+        <span>WORM SHA-256: SYNCED</span>
+      </div>
+      <button class="btn btn-primary" id="btn-inject-seed" onclick="injectSeedStream()">
+        &plus; Inject Seed Stream
+      </button>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <nav class="app-nav" aria-label="Main Navigation">
+    <button class="nav-tab active" data-tab="tab-stream" id="tab-btn-stream">
+      <span>&bull;</span> Live Stream & Gateway
+    </button>
+    <button class="nav-tab" data-tab="tab-cases" id="tab-btn-cases">
+      <span>&#9878;</span> Case Adjudication (HITL)
+    </button>
+    <button class="nav-tab" data-tab="tab-swarm" id="tab-btn-swarm">
+      <span>&#9889;</span> Multi-Agent Swarm
+    </button>
+    <button class="nav-tab" data-tab="tab-metrics" id="tab-btn-metrics">
+      <span>&#128200;</span> 5-Tier Metrics Observatory
+    </button>
+    <button class="nav-tab" data-tab="tab-mlops" id="tab-btn-mlops">
+      <span>&#9763;</span> MLOps Drift & Shadow
+    </button>
+    <button class="nav-tab" data-tab="tab-typologies" id="tab-btn-typologies">
+      <span>&#9881;</span> Typology Sandbox
+    </button>
+    <button class="nav-tab" data-tab="tab-audit" id="tab-btn-audit">
+      <span>&#128274;</span> Cryptographic Audit
+    </button>
+  </nav>
+
+  <!-- Content Panes -->
+  <main class="content-area">
+
+    <!-- TAB 1: Live Stream & Ingestion Gateway -->
+    <section id="tab-stream" class="tab-pane active">
+      <div class="grid-4" style="margin-bottom: 1.5rem;">
+        <div class="stat-card">
+          <div class="stat-label">Streaming Throughput</div>
+          <div class="stat-value" id="stream-tps-val">14,250</div>
+          <div class="stat-sub">Target: &gt; 10,000 TPS | Peak: 50,000 TPS</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Tier 1 Latency (p99)</div>
+          <div class="stat-value" style="color:var(--accent-emerald);" id="stream-t1-lat">3.8 ms</div>
+          <div class="stat-sub">Statutory Sanctions & Velocity (&lt; 20ms)</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Tier 2 Latency (p99)</div>
+          <div class="stat-value" style="color:var(--accent-cyan);" id="stream-t2-lat">42.5 ms</div>
+          <div class="stat-sub">Ensemble GBM + Autoencoder + GNN (&lt; 100ms)</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">PII Tokenization Gateway</div>
+          <div class="stat-value" style="color:var(--accent-indigo);">100%</div>
+          <div class="stat-sub">Zero Customer PII Transits to Public Cloud</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <h2><span>&#128366;</span> Real-Time Financial Transaction Ingestion Stream (ISO 20022 / ACH / Wire)</h2>
+          <button class="btn btn-secondary" onclick="loadLiveStream()">Refresh Stream</button>
+        </div>
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Transaction ID</th>
+                <th>Time (UTC)</th>
+                <th>Amount (USD)</th>
+                <th>Counterparties</th>
+                <th>Tier 1 Rules</th>
+                <th>Tier 2 Score</th>
+                <th>System Status</th>
+              </tr>
+            </thead>
+            <tbody id="stream-tbody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: Case Adjudication (HITL) -->
+    <section id="tab-cases" class="tab-pane">
+      <div class="panel">
+        <div class="panel-header">
+          <h2><span>&#9878;</span> Compliance Officer Cockpit: Pending & Escalated Cases</h2>
+          <button class="btn btn-secondary" onclick="loadCases()">Refresh Queue</button>
+        </div>
+        <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:1rem;">
+          Human-in-the-Loop oversight. Review auto-compiled agent dossiers, evaluate SHAP counterfactual explanations, edit draft SAR narratives, and approve or override filings.
+        </p>
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Case ID</th>
+                <th>Suspect / Entity</th>
+                <th>Flagged Amount</th>
+                <th>Inferred Typology</th>
+                <th>Risk Score</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="cases-tbody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: Multi-Agent Swarm -->
+    <section id="tab-swarm" class="tab-pane">
+      <div class="panel">
+        <div class="panel-header">
+          <h2><span>&#9889;</span> Tier 3 Multi-Agent Cognitive Swarm Architecture</h2>
+        </div>
+        <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:1.5rem;">
+          Hierarchical multi-agent system executing within deterministic DAG state machines. Agents query tools across property knowledge graphs, adverse media vectors, and corporate registries.
+        </p>
+
+        <div class="dag-container">
+          <div class="dag-node active">
+            <span class="badge badge-indigo">1. Orchestrator</span>
+            <strong>Supervisor Agent</strong>
+            <span style="color:var(--text-muted);">Alert Risk Vector &bull; Formulates Plan DAG</span>
+          </div>
+          <div class="dag-arrow">&rarr;</div>
+          <div class="dag-node">
+            <span class="badge badge-indigo">2. Identity</span>
+            <strong>Entity Resolution Agent</strong>
+            <span style="color:var(--text-muted);">UBO Unrolling &bull; Shared Device Footprints</span>
+          </div>
+          <div class="dag-arrow">&rarr;</div>
+          <div class="dag-node">
+            <span class="badge badge-indigo">3. Forensics</span>
+            <strong>Transaction Forensics</strong>
+            <span style="color:var(--text-muted);">Dwell Time &bull; Peeling Chains &bull; Smurfing</span>
+          </div>
+          <div class="dag-arrow">&rarr;</div>
+          <div class="dag-node">
+            <span class="badge badge-indigo">4. OSINT</span>
+            <strong>Adverse Media Agent</strong>
+            <span style="color:var(--text-muted);">Vector Search &bull; TBML Commodity Check</span>
+          </div>
+          <div class="dag-arrow">&rarr;</div>
+          <div class="dag-node">
+            <span class="badge badge-indigo">5. Synthesis</span>
+            <strong>SAR Synthesis Agent</strong>
+            <span style="color:var(--text-muted);">FinCEN Activity Codes &bull; Factual Narrative</span>
+          </div>
+          <div class="dag-arrow">&rarr;</div>
+          <div class="dag-node active">
+            <span class="badge badge-approved">6. Guardrail</span>
+            <strong>Compliance Critic</strong>
+            <span style="color:var(--text-muted);">Factual Entailment &bull; Anti-Hallucination</span>
+          </div>
+        </div>
+
+        <div class="grid-2" style="margin-top: 2rem;">
+          <div class="stat-card">
+            <div class="stat-label">Zero-Hallucination Grounding Rule</div>
+            <p style="font-family:'JetBrains Mono', monospace; font-size:0.8rem; color:var(--accent-cyan); margin-top:0.5rem;">
+              &forall; Claim c &isin; Narrative, &exist; Evidence e &isin; Dossier s.t. Entailment(e, c) &ge; 0.90
+            </p>
+            <div class="stat-sub" style="margin-top:0.75rem;">Rejects speculative assertions and triggers revision loop if claims lack system evidence.</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Autonomous Clearance Guardrails</div>
+            <p style="font-family:'JetBrains Mono', monospace; font-size:0.8rem; color:var(--accent-emerald); margin-top:0.5rem;">
+              Auto-Clears ONLY if: S_final &lt; 0.45 &and; Negative Adverse Media &and; No Peeling Chain &and; Consistent UBO
+            </p>
+            <div class="stat-sub" style="margin-top:0.75rem;">Eliminates trivial false positives while capturing auditable compliance rationales.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: 5-Tier Metrics Observatory -->
+    <section id="tab-metrics" class="tab-pane">
+      <div class="panel-header" style="margin-bottom:1.5rem;">
+        <h2><span>&#128200;</span> Multi-Dimensional Performance Matrix (Section 8)</h2>
+        <button class="btn btn-secondary" onclick="loadMetrics()">Refresh Scorecard</button>
+      </div>
+
+      <!-- 1. Business Metrics -->
+      <h3 style="margin-bottom:0.75rem; color:var(--accent-indigo);">1. Business & Compliance Impact Metrics</h3>
+      <div class="grid-4" style="margin-bottom:1.5rem;">
+        <div class="stat-card">
+          <div class="stat-label">Alert-to-SAR Conversion</div>
+          <div class="stat-value" id="biz-conv-rate">29.2%</div>
+          <div class="stat-sub">Industry Baseline: 1-2% | Target: &gt; 25%</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Mean Time to Investigate (MTTI)</div>
+          <div class="stat-value" id="biz-mtti">16.8 min</div>
+          <div class="stat-sub">Manual Baseline: 240 mins (93% reduction)</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Cost per Resolved Alert</div>
+          <div class="stat-value" id="biz-cost">$12.50</div>
+          <div class="stat-sub">Fully burdened compute + analyst review</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Net Labor Savings</div>
+          <div class="stat-value" style="color:var(--accent-emerald);" id="biz-savings">$11,856</div>
+          <div class="stat-sub">Operational efficiency savings</div>
+        </div>
+      </div>
+
+      <!-- 2. System Metrics -->
+      <h3 style="margin-bottom:0.75rem; color:var(--accent-cyan);">2. System & Infrastructure Engineering Metrics</h3>
+      <div class="grid-4" style="margin-bottom:1.5rem;">
+        <div class="stat-card">
+          <div class="stat-label">Tier 1 Gate Latency (p99)</div>
+          <div class="stat-value" id="sys-t1-p99">6.2 ms</div>
+          <div class="stat-sub">SLA: p99 &lt; 20ms (PASS)</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Tier 2 ML Scoring (p99)</div>
+          <div class="stat-value" id="sys-t2-p99">52.3 ms</div>
+          <div class="stat-sub">SLA: p99 &lt; 100ms (PASS)</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Throughput Capacity</div>
+          <div class="stat-value" id="sys-tps">14,200 TPS</div>
+          <div class="stat-sub">Continuous target: &gt; 10,000 TPS</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Cloud Interconnect Saturation</div>
+          <div class="stat-value" id="sys-transit-sat">38.0%</div>
+          <div class="stat-sub">OpenStack-to-GCP 10Gbps MACsec</div>
+        </div>
+      </div>
+
+      <!-- 3. RAG Metrics -->
+      <h3 style="margin-bottom:0.75rem; color:var(--accent-emerald);">3. RAG Triad & Generative Grounding Metrics</h3>
+      <div class="grid-4" style="margin-bottom:1.5rem;">
+        <div class="stat-card">
+          <div class="stat-label">Faithfulness / Groundedness</div>
+          <div class="stat-value" id="rag-faithfulness">98.5%</div>
+          <div class="stat-sub">Claim-to-evidence ratio in SAR narrative</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Context Relevance</div>
+          <div class="stat-value" id="rag-relevance">94.2%</div>
+          <div class="stat-sub">Adverse media vector precision</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Answer Completeness</div>
+          <div class="stat-value" id="rag-completeness">96.0%</div>
+          <div class="stat-sub">5Ws regulatory coverage index</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Unified RAG Triad Index</div>
+          <div class="stat-value" id="rag-index">96.2%</div>
+          <div class="stat-sub">Zero hallucination verified</div>
+        </div>
+      </div>
+
+      <!-- 4. Agentic Metrics -->
+      <h3 style="margin-bottom:0.75rem; color:var(--accent-purple);">4. Agentic & Cognitive Efficiency Metrics</h3>
+      <div class="grid-4" style="margin-bottom:1.5rem;">
+        <div class="stat-card">
+          <div class="stat-label">Plan DAG Completion Rate</div>
+          <div class="stat-value" id="agent-plan-rate">100.0%</div>
+          <div class="stat-sub">Zero unhandled agent errors</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Auto-Clearance Accuracy</div>
+          <div class="stat-value" id="agent-clearance-acc">100.0%</div>
+          <div class="stat-sub">Agreement with human compliance audit</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Critic Rejection Rate</div>
+          <div class="stat-value" id="agent-critic-reject">5.0%</div>
+          <div class="stat-sub">Drafts routed back for revision</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Avg Tools / Investigation</div>
+          <div class="stat-value" id="agent-tools-avg">10.8</div>
+          <div class="stat-sub">Reasoning step efficiency</div>
+        </div>
+      </div>
+
+      <!-- 5. ML Metrics -->
+      <h3 style="margin-bottom:0.75rem; color:var(--accent-amber);">5. Machine Learning Statistical Metrics</h3>
+      <div class="grid-4">
+        <div class="stat-card">
+          <div class="stat-label">PR-AUC</div>
+          <div class="stat-value" id="ml-prauc">0.924</div>
+          <div class="stat-sub">Precision-Recall Area Under Curve</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Precision @ Top-5 Alerts</div>
+          <div class="stat-value" id="ml-prec-k">100.0%</div>
+          <div class="stat-sub">Accuracy in highest-risk percentile</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Expected Calibration Error (ECE)</div>
+          <div class="stat-value" id="ml-ece">0.0342</div>
+          <div class="stat-sub">Empirical risk alignment (&lt; 0.05)</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Brier Score</div>
+          <div class="stat-value" id="ml-brier">0.0418</div>
+          <div class="stat-sub">Probabilistic calibration accuracy</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 5: MLOps Drift Radar & Shadow Scoring -->
+    <section id="tab-mlops" class="tab-pane">
+      <div class="grid-2">
+        <div class="panel">
+          <div class="panel-header">
+            <h2><span>&#9763;</span> Continuous Drift Radar (PSI & Page-Hinkley)</h2>
+            <button class="btn btn-secondary" onclick="loadMLOps()">Run Evaluation</button>
+          </div>
+          <div class="grid-2" style="margin-bottom:1rem;">
+            <div class="stat-card">
+              <div class="stat-label">Recommended MLOps Action</div>
+              <div class="stat-value" style="font-size:1.2rem; color:var(--accent-emerald);" id="drift-action">STABLE</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Page-Hinkley Concept Metric</div>
+              <div class="stat-value" id="drift-ph">0.024</div>
+              <div class="stat-sub">Threshold for drift trigger: &gt; 5.0</div>
+            </div>
+          </div>
+          <h4>Covariate Shift (Population Stability Index - PSI)</h4>
+          <div id="psi-list" style="margin-top:0.75rem;">
+            <!-- Dynamically populated -->
+          </div>
+          <div style="font-size:0.75rem; color:var(--text-muted); margin-top:1rem;">
+            Thresholds: PSI &lt; 0.10 (Stable) &bull; 0.10 &le; PSI &lt; 0.25 (Moderate Drift) &bull; PSI &ge; 0.25 (Retrain Trigger)
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <h2><span>&#9878;</span> Champion vs Challenger Shadow Scoring</h2>
+          </div>
+          <div class="stat-card" style="margin-bottom:1rem;">
+            <div class="stat-label">Differential Divergence Rate</div>
+            <div class="stat-value" id="shadow-div-rate">4.8%</div>
+            <div class="stat-sub">Instances where |S_champ - S_chall| &gt; 0.15 tolerance</div>
+          </div>
+          <h4>Model Governance Registry (SR 11-7)</h4>
+          <div class="table-container" style="margin-top:0.75rem;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Model Name</th>
+                  <th>Version</th>
+                  <th>Status</th>
+                  <th>PR-AUC</th>
+                  <th>F1</th>
+                </tr>
+              </thead>
+              <tbody id="models-tbody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 6: Structural Typologies Sandbox -->
+    <section id="tab-typologies" class="tab-pane">
+      <div class="panel-header" style="margin-bottom:1.5rem;">
+        <div>
+          <h2><span>&#9881;</span> Structural Evasion Typology Sandbox (Section 10)</h2>
+          <p style="font-size:0.85rem; color:var(--text-secondary);">1-Click interactive execution of all 8 advanced money laundering typologies across Tiers 1, 2, and 3.</p>
+        </div>
+      </div>
+      <div class="grid-4" id="typologies-container">
+        <!-- Dynamically populated with 8 typology cards -->
+      </div>
+    </section>
+
+    <!-- TAB 7: Cryptographic WORM Audit Chain -->
+    <section id="tab-audit" class="tab-pane">
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <h2><span>&#128274;</span> Continuous SHA-256 Cryptographic Audit Ledger (Section 11)</h2>
+            <p style="font-size:0.85rem; color:var(--text-secondary);">Immutable Write-Once-Read-Many (WORM) hash chain across Ingress &rarr; Rules &rarr; ML &rarr; Agent Trace &rarr; Human Decision.</p>
+          </div>
+          <button class="btn btn-primary" onclick="verifyChainIntegrity()">Verify Chain Integrity</button>
+        </div>
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Block #</th>
+                <th>Event Type</th>
+                <th>Current SHA-256 Hash</th>
+                <th>Previous Hash Link</th>
+                <th>Actor</th>
+                <th>Timestamp (UTC)</th>
+              </tr>
+            </thead>
+            <tbody id="audit-tbody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Case Adjudication Modal -->
+  <div class="modal-overlay" id="case-modal">
+    <div class="modal-window" id="case-modal-content">
+      <!-- Dynamically filled by openCaseModal -->
+    </div>
+  </div>
+
+  <!-- Notification Toast -->
+  <div id="toast"></div>
+
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
