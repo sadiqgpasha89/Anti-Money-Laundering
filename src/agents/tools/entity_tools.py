@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Dict, Any, List, Optional
 from src.core.config import settings
 from src.data_engineering.graph_builder import aml_graph
+from src.data_engineering.tokenizer import pii_tokenizer
 
 
 class EntityTools:
@@ -29,7 +30,8 @@ class EntityTools:
         C_effective = prod(M_ownership)
         Traverses through shell holding tiers across opaque jurisdictions.
         """
-        lookup_key = company_identifier.upper().strip()
+        # The alert carries tokenized names; the corporate registry is an on-premises source, so resolve the token here
+        lookup_key = pii_tokenizer.detokenize(company_identifier).upper().strip()
         comp = self._registry.get(lookup_key)
 
         if not comp:

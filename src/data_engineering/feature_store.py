@@ -36,6 +36,7 @@ class FeatureStore:
         acct_id = txn.sender.account_id
         geo = txn.telemetry.geo_hash or "c00000"
         self._history[acct_id].append({
+            "transaction_id": txn.transaction_id,
             "timestamp": txn.timestamp,
             "amount": txn.amount,
             "geo_hash": geo,
@@ -70,6 +71,9 @@ class FeatureStore:
         recent_auth_failures = txn.telemetry.failed_auth_count
 
         for rec in records:
+            # the current transaction is already counted above; the pipeline records it before it is scored
+            if rec.get("transaction_id") == txn.transaction_id:
+                continue
             ts = rec["timestamp"]
             amt = rec["amount"]
             amounts.append(amt)
