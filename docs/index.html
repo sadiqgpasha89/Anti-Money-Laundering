@@ -1,0 +1,581 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sentinel AML – Hybrid Anti-Money-Laundering Architecture</title>
+<meta name="description" content="Sentinel AML: a four-tier anti-money-laundering reference architecture combining a sub-20 ms rules engine, ML and graph scoring, a six-agent investigation swarm and human sign-off, with a hybrid-cloud design that keeps customer PII on-premises.">
+<meta property="og:title" content="Sentinel AML – Hybrid Anti-Money-Laundering Architecture">
+<meta property="og:description" content="Rules, ML, graphs and multi-agent investigators, with a human accountable at the end. Explore the use case.">
+<meta property="og:type" content="website">
+<style>
+:root{
+  --bg:#f7f8fa; --surface:#ffffff; --surface-2:#eef1f6; --text:#14181f; --muted:#576070;
+  --line:#dde2ea; --accent:#1f5eff; --accent-ink:#ffffff; --accent-soft:#e6edff;
+  --t1:#c2410c; --t2:#7c3aed; --t3:#0369a1; --t4:#15803d;
+  --t1-soft:#ffedd5; --t2-soft:#ede9fe; --t3-soft:#e0f2fe; --t4-soft:#dcfce7;
+  --warn:#b45309; --warn-soft:#fef3c7; --danger:#b91c1c;
+  --radius:14px; --shadow:0 1px 2px rgba(20,24,31,.06),0 6px 20px rgba(20,24,31,.06);
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0d1117; --surface:#161b22; --surface-2:#1e2530; --text:#e6eaf0; --muted:#97a1b0;
+    --line:#2b3340; --accent:#6f9bff; --accent-ink:#0d1117; --accent-soft:#1a2a52;
+    --t1:#fb923c; --t2:#a78bfa; --t3:#38bdf8; --t4:#4ade80;
+    --t1-soft:#3a2312; --t2-soft:#2a2147; --t3-soft:#10303f; --t4-soft:#13321f;
+    --warn:#fbbf24; --warn-soft:#3a2d0c; --danger:#f87171;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 20px rgba(0,0,0,.35);
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:var(--accent)}
+code,kbd{font:.88em ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--surface-2);padding:.1em .4em;border-radius:6px}
+.wrap{max-width:1040px;margin:0 auto;padding:0 20px}
+h1,h2,h3{line-height:1.2;margin:0 0 .5em;letter-spacing:-.01em}
+h2{font-size:clamp(1.5rem,3vw,2rem);margin-top:0}
+h3{font-size:1.1rem}
+p{margin:0 0 1em}
+.eyebrow{font-size:.78rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:.6rem}
+.lead{font-size:1.12rem;color:var(--muted);max-width:68ch}
+
+/* nav */
+nav.top{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+nav.top .wrap{display:flex;align-items:center;gap:18px;height:56px;overflow-x:auto;white-space:nowrap;scrollbar-width:none}
+nav.top .brand{font-weight:800;color:var(--text);text-decoration:none;display:flex;align-items:center;gap:8px}
+nav.top .brand i{width:10px;height:10px;border-radius:50%;background:var(--accent);display:inline-block}
+nav.top a.l{color:var(--muted);text-decoration:none;font-size:.92rem}
+nav.top a.l:hover{color:var(--text)}
+nav.top .gh{margin-left:auto;background:var(--text);color:var(--bg);padding:6px 12px;border-radius:999px;font-size:.85rem;font-weight:600;text-decoration:none}
+
+/* hero */
+.hero{padding:72px 0 48px}
+.hero h1{font-size:clamp(2rem,5.5vw,3.4rem);max-width:20ch}
+.hero .lead{margin:1rem 0 1.6rem}
+.btns{display:flex;gap:12px;flex-wrap:wrap}
+.btn{display:inline-block;padding:11px 18px;border-radius:10px;font-weight:600;text-decoration:none;border:1px solid var(--line);background:var(--surface);color:var(--text)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-top:40px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
+.stat b{display:block;font-size:1.7rem;letter-spacing:-.02em}
+.stat span{color:var(--muted);font-size:.88rem}
+
+section{padding:56px 0;border-top:1px solid var(--line)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow)}
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
+.g4{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+
+/* problem */
+.problem li{margin-bottom:.5em}
+.pill{display:inline-block;font-size:.76rem;font-weight:700;padding:2px 10px;border-radius:999px;background:var(--accent-soft);color:var(--accent)}
+
+/* cascade */
+.cascade{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:24px 0 16px}
+@media(max-width:820px){.cascade{grid-template-columns:1fr 1fr}}
+@media(max-width:480px){.cascade{grid-template-columns:1fr}}
+.tier{cursor:pointer;text-align:left;border:2px solid var(--line);background:var(--surface);border-radius:var(--radius);padding:16px;font:inherit;color:inherit;transition:transform .15s,border-color .15s}
+.tier:hover{transform:translateY(-2px)}
+.tier[aria-selected=true]{border-color:var(--c);background:var(--cs)}
+.tier .n{font-size:.75rem;font-weight:800;letter-spacing:.08em;color:var(--c)}
+.tier b{display:block;font-size:1.05rem;margin:2px 0 4px}
+.tier small{color:var(--muted);display:block;line-height:1.4}
+.tier.t1{--c:var(--t1);--cs:var(--t1-soft)}.tier.t2{--c:var(--t2);--cs:var(--t2-soft)}
+.tier.t3{--c:var(--t3);--cs:var(--t3-soft)}.tier.t4{--c:var(--t4);--cs:var(--t4-soft)}
+.panel{border-left:5px solid var(--c);padding:20px 22px}
+.panel ul{margin:.3em 0 0;padding-left:1.2em}
+.panel li{margin-bottom:.4em}
+.sla{float:right;font-weight:700;font-size:.85rem;color:var(--c)}
+
+/* boundary */
+.boundary{display:grid;grid-template-columns:1fr 90px 1fr;gap:0;align-items:stretch;margin-top:20px}
+@media(max-width:760px){.boundary{grid-template-columns:1fr}.bridge{padding:14px 0}.bridge svg{transform:rotate(90deg);margin:auto}}
+.enclave{border:2px dashed var(--line);border-radius:var(--radius);padding:18px;background:var(--surface)}
+.enclave.onprem{border-color:var(--t1)}.enclave.cloud{border-color:var(--t3)}
+.enclave h3{margin-bottom:.6em}
+.enclave ul{margin:0;padding-left:1.1em;font-size:.95rem}
+.bridge{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;font-size:.72rem;font-weight:700;color:var(--muted);gap:4px}
+.lock{font-weight:700}
+
+.tokdemo{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center;margin-top:16px}
+@media(max-width:640px){.tokdemo{grid-template-columns:1fr}.tokdemo .arrow{transform:rotate(90deg);justify-self:center}}
+.tokdemo input{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface-2);color:var(--text);font:inherit}
+.tokout{padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--t4-soft);font:.9rem ui-monospace,Menlo,Consolas,monospace;word-break:break-all;min-height:44px}
+.label{font-size:.78rem;color:var(--muted);font-weight:600;margin-bottom:4px;display:block}
+
+/* score calc */
+.calc{display:grid;grid-template-columns:1.1fr .9fr;gap:24px}
+@media(max-width:760px){.calc{grid-template-columns:1fr}}
+.slider{margin-bottom:18px}
+.slider .row{display:flex;justify-content:space-between;font-weight:600;font-size:.92rem}
+.slider input{width:100%;accent-color:var(--accent)}
+.result{background:var(--surface-2);border-radius:var(--radius);padding:20px;text-align:center}
+.result .score{font-size:3rem;font-weight:800;letter-spacing:-.03em;line-height:1}
+.result .route{margin-top:12px;font-weight:700;padding:8px 12px;border-radius:10px;display:inline-block}
+.meter{height:12px;border-radius:99px;background:linear-gradient(90deg,var(--t4) 0 35%,var(--warn) 35% 70%,var(--danger) 70% 100%);position:relative;margin:18px 0 6px}
+.meter i{position:absolute;top:-5px;width:4px;height:22px;background:var(--text);border-radius:2px;transform:translateX(-2px);transition:left .15s}
+.ticks{display:flex;justify-content:space-between;font-size:.7rem;color:var(--muted)}
+.presets{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.chip{border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:999px;padding:6px 12px;font:inherit;font-size:.85rem;cursor:pointer}
+.chip:hover{border-color:var(--accent)}
+
+/* DAG */
+.dag{width:100%;height:auto;display:block}
+.dag text{fill:var(--text);font:600 13px system-ui,sans-serif}
+.dag .sub{font-weight:400;font-size:11px;fill:var(--muted)}
+.dag rect{fill:var(--surface);stroke:var(--line);stroke-width:1.5}
+.dag .e{stroke:var(--muted);stroke-width:1.6;fill:none}
+.dag marker path{fill:var(--muted)}
+.agent{display:flex;gap:12px}
+.agent .ic{flex:none;width:36px;height:36px;border-radius:10px;background:var(--t3-soft);color:var(--t3);display:grid;place-items:center;font-weight:800}
+.agent h3{margin:0 0 .2em;font-size:1rem}
+.agent p{margin:0;color:var(--muted);font-size:.92rem}
+
+/* walkthrough */
+.tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.tabs button{border:1px solid var(--line);background:var(--surface);color:var(--text);padding:9px 14px;border-radius:10px;font:inherit;font-weight:600;cursor:pointer}
+.tabs button[aria-selected=true]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.steps{list-style:none;margin:0;padding:0;counter-reset:s}
+.steps li{counter-increment:s;position:relative;padding:10px 0 10px 46px;border-bottom:1px solid var(--line)}
+.steps li:last-child{border-bottom:0}
+.steps li::before{content:counter(s);position:absolute;left:0;top:10px;width:30px;height:30px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-weight:700;font-size:.85rem}
+.steps li b{display:inline-block;margin-right:6px}
+.tag{font-size:.7rem;font-weight:800;padding:2px 8px;border-radius:6px;margin-right:6px;vertical-align:1px}
+.tag.t1{background:var(--t1-soft);color:var(--t1)}.tag.t2{background:var(--t2-soft);color:var(--t2)}
+.tag.t3{background:var(--t3-soft);color:var(--t3)}.tag.t4{background:var(--t4-soft);color:var(--t4)}
+.tag.p{background:var(--surface-2);color:var(--muted)}
+
+/* typologies */
+.typ{cursor:default}
+.typ .num{font-size:.75rem;font-weight:800;color:var(--accent)}
+.typ h3{margin:.1em 0 .3em}
+.typ p{color:var(--muted);font-size:.92rem;margin:0}
+.typ .catch{margin-top:10px;font-size:.84rem;color:var(--text)}
+.typ .catch b{color:var(--accent)}
+
+/* honesty */
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:760px){.cols{grid-template-columns:1fr}}
+.real{border-top:4px solid var(--t4)}.sim{border-top:4px solid var(--warn)}
+.cols ul{padding-left:1.1em;margin:.4em 0 0;font-size:.94rem}
+.cols li{margin-bottom:.45em}
+.notice{background:var(--warn-soft);border:1px solid var(--warn);color:var(--text);border-radius:var(--radius);padding:14px 18px;margin-top:18px;font-size:.94rem}
+
+pre{background:#0d1117;color:#e6eaf0;padding:16px;border-radius:12px;overflow-x:auto;font-size:.88rem;line-height:1.55;margin:0 0 1em}
+pre .c{color:#7d8795}
+footer{border-top:1px solid var(--line);padding:36px 0 60px;color:var(--muted);font-size:.92rem}
+footer a{color:var(--muted)}
+.sr{position:absolute;left:-9999px}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+
+<nav class="top" aria-label="Page sections">
+  <div class="wrap">
+    <a class="brand" href="#top"><i></i>Sentinel AML</a>
+    <a class="l" href="#problem">Problem</a>
+    <a class="l" href="#cascade">Four tiers</a>
+    <a class="l" href="#hybrid">Hybrid cloud</a>
+    <a class="l" href="#scoring">Scoring</a>
+    <a class="l" href="#swarm">Agent swarm</a>
+    <a class="l" href="#walkthrough">Walkthrough</a>
+    <a class="l" href="#typologies">Typologies</a>
+    <a class="l" href="#honesty">Real vs simulated</a>
+    <a class="l" href="#run">Run it</a>
+    <a class="gh" href="https://github.com/sadiqgpasha89/Anti-Money-Laundering">GitHub</a>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="wrap">
+    <div class="eyebrow">Open-source reference architecture · Financial crime</div>
+    <h1>Fight money laundering with rules, ML, graphs and AI agents.</h1>
+    <p class="lead">Sentinel AML routes every transaction through a four-tier cascade. Each tier uses the cheapest method that can decide, and escalates only what it cannot resolve. A compliance officer makes every final call. Customer PII never leaves your data center.</p>
+    <div class="btns">
+      <a class="btn primary" href="#cascade">Explore the use case</a>
+      <a class="btn" href="https://github.com/sadiqgpasha89/Anti-Money-Laundering">View source on GitHub</a>
+    </div>
+    <div class="stats">
+      <div class="stat"><b>4</b><span>tiers: rules → ML &amp; graph → agents → human</span></div>
+      <div class="stat"><b>6</b><span>specialist investigation agents</span></div>
+      <div class="stat"><b>8</b><span>laundering typologies covered</span></div>
+      <div class="stat"><b>0</b><span>raw PII sent to the public cloud</span></div>
+    </div>
+  </div>
+</header>
+
+<section id="problem">
+  <div class="wrap">
+    <div class="eyebrow">The use case</div>
+    <h2>Banks decide in milliseconds, and still get it wrong most of the time.</h2>
+    <div class="grid g2">
+      <div class="card problem">
+        <h3>Why legacy monitoring struggles</h3>
+        <ul>
+          <li>Static rules such as "flag any cash deposit over $10,000" are easy to game.</li>
+          <li>Industry estimates put false-positive rates at <b>95–99%</b>.</li>
+          <li>Analysts spend most of their time copying data between systems instead of investigating.</li>
+          <li>Launderers adapt: $9,500 deposits, five hops in 45 seconds, shell companies holding 24.5% each.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Why not one big model?</h3>
+        <ul style="padding-left:1.2em;margin:0">
+          <li><b>Cost and latency differ by orders of magnitude.</b> A string match takes microseconds, a graph model milliseconds, an LLM investigation seconds to minutes.</li>
+          <li><b>Some decisions must be deterministic.</b> A sanctions hit is a legal obligation, not a probability.</li>
+          <li><b>Accountability can't be delegated.</b> A suspicious activity report (SAR) is a legal filing, so a qualified human must stand behind it.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="cascade">
+  <div class="wrap">
+    <div class="eyebrow">The architecture</div>
+    <h2>A cascade, not a single model.</h2>
+    <p class="lead">Most transactions are approved within milliseconds. A small fraction becomes an alert. Only those alerts reach the expensive agent swarm, and only a human can file.</p>
+
+    <div class="cascade" role="tablist" aria-label="Defense tiers">
+      <button class="tier t1" role="tab" aria-selected="true" data-tier="0"><span class="n">TIER 1</span><b>Deterministic rules</b><small>Sanctions, CTR, velocity · &lt; 20 ms</small></button>
+      <button class="tier t2" role="tab" aria-selected="false" data-tier="1"><span class="n">TIER 2</span><b>ML &amp; graph ensemble</b><small>GBM + autoencoder + graph · &lt; 100 ms</small></button>
+      <button class="tier t3" role="tab" aria-selected="false" data-tier="2"><span class="n">TIER 3</span><b>Multi-agent swarm</b><small>Six specialists investigate</small></button>
+      <button class="tier t4" role="tab" aria-selected="false" data-tier="3"><span class="n">TIER 4</span><b>Human in the loop</b><small>Approve or override, always</small></button>
+    </div>
+    <div class="card panel" id="tierPanel" role="tabpanel" aria-live="polite"></div>
+  </div>
+</section>
+
+<section id="hybrid">
+  <div class="wrap">
+    <div class="eyebrow">Data sovereignty</div>
+    <h2>A hybrid-cloud boundary built around privacy.</h2>
+    <p class="lead">Steady, high-volume work runs on-premises on OpenStack. Burst-heavy reasoning and retraining run on Google Cloud. Raw names, national IDs and account numbers never cross the line.</p>
+
+    <div class="boundary">
+      <div class="enclave onprem">
+        <h3 style="color:var(--t1)">On-premises · OpenStack</h3>
+        <ul>
+          <li>Kafka ingestion, ISO 20022 canonical schema</li>
+          <li>Tier 1 rules engine and sanctions screening</li>
+          <li>PII tokenization gateway and token vault</li>
+          <li>Knowledge graph (Neo4j / TigerGraph)</li>
+          <li>Feature store (Redis + baselines)</li>
+          <li>Cryptographic audit ledger</li>
+        </ul>
+      </div>
+      <div class="bridge" aria-hidden="true">
+        <svg width="70" height="40" viewBox="0 0 70 40"><path d="M4 20h54m0 0-9-8m9 8-9 8" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="lock">TOKENS ONLY</span>
+        <span>private interconnect</span>
+      </div>
+      <div class="enclave cloud">
+        <h3 style="color:var(--t3)">Google Cloud</h3>
+        <ul>
+          <li>Tier 2 ML and graph inference</li>
+          <li>Tier 3 agent microservices on GKE Autopilot</li>
+          <li>Vertex AI with zero data retention</li>
+          <li>Vector Search for adverse media</li>
+          <li>BigQuery lakehouse and drift monitoring</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:20px">
+      <h3>Try the tokenizer</h3>
+      <p style="color:var(--muted);margin-bottom:6px">The same input always produces the same token, so a customer in 50 transactions is still one node in the graph, but the cloud never sees the name. <i>(This demo uses a simple non-cryptographic hash in your browser for illustration; the repo uses HMAC-SHA256 with an on-prem secret.)</i></p>
+      <div class="tokdemo">
+        <div><label class="label" for="pii">Raw identifier (stays on-prem)</label><input id="pii" value="Ivan Korolev" autocomplete="off"></div>
+        <div class="arrow" aria-hidden="true" style="font-weight:800;font-size:1.4rem">→</div>
+        <div><span class="label">Token sent to the cloud</span><div class="tokout" id="tok" aria-live="polite"></div></div>
+      </div>
+    </div>
+
+    <div class="notice" style="background:var(--t4-soft);border-color:var(--t4)">
+      <b>Safe degradation:</b> if connectivity between OpenStack and GCP drops, the system falls back to local rules and baseline models and buffers agent tasks in local Kafka queues. No regulatory review is lost; it is only delayed.
+    </div>
+  </div>
+</section>
+
+<section id="scoring">
+  <div class="wrap">
+    <div class="eyebrow">Tier 2 · Triage gate</div>
+    <h2>Three models disagree on purpose.</h2>
+    <p class="lead">A supervised model asks "have I seen this before?", an autoencoder asks "is this unlike anything normal?", and a graph scorer asks "does the surrounding network look wrong?" Their blend decides where the transaction goes next.</p>
+
+    <div class="card">
+      <div class="presets" aria-label="Example scenarios">
+        <button class="chip" data-p="0.05,0.10,0.05">Grocery purchase</button>
+        <button class="chip" data-p="0.55,0.40,0.20">Borderline wire</button>
+        <button class="chip" data-p="0.50,1.00,0.05">Zero-day anomaly (sleeper account)</button>
+        <button class="chip" data-p="0.87,1.00,0.82">Peeling chain</button>
+      </div>
+      <div class="calc">
+        <div>
+          <div class="slider"><div class="row"><label for="s1">Supervised GBM</label><span id="v1"></span></div><input id="s1" type="range" min="0" max="1" step="0.01" value="0.87"></div>
+          <div class="slider"><div class="row"><label for="s2">Autoencoder (anomaly)</label><span id="v2"></span></div><input id="s2" type="range" min="0" max="1" step="0.01" value="1"></div>
+          <div class="slider"><div class="row"><label for="s3">Graph scorer</label><span id="v3"></span></div><input id="s3" type="range" min="0" max="1" step="0.01" value="0.82"></div>
+          <p style="color:var(--muted);font-size:.9rem;margin:0"><code>S_final = 0.40·S_sup + 0.30·S_ae + 0.30·S_graph</code></p>
+        </div>
+        <div class="result">
+          <div class="label">Composite score</div>
+          <div class="score" id="final">0.89</div>
+          <div class="meter"><i id="needle"></i></div>
+          <div class="ticks"><span>0</span><span>0.35</span><span>0.70</span><span>1</span></div>
+          <div class="route" id="route"></div>
+          <p id="routeNote" style="color:var(--muted);font-size:.88rem;margin:10px 0 0"></p>
+        </div>
+      </div>
+      <p style="color:var(--muted);font-size:.9rem;margin:18px 0 0">Every score ships with SHAP-style feature attributions and a plain-language counterfactual: <i>"the score falls below the investigation threshold if the amount drops below $X and 1-hour turnover stays below $Y."</i></p>
+    </div>
+  </div>
+</section>
+
+<section id="swarm">
+  <div class="wrap">
+    <div class="eyebrow">Tier 3</div>
+    <h2>A swarm of specialists, planned as a DAG.</h2>
+    <p class="lead">For alerts with <code>S_final ≥ 0.35</code>, a Supervisor writes an execution plan of five dependent tasks. Independent tasks run first; the Compliance Critic audits the final narrative.</p>
+
+    <div class="card" style="margin-bottom:16px">
+      <svg class="dag" viewBox="0 -10 860 260" role="img" aria-label="Task graph: Entity Resolution and Forensics run first; OSINT depends on Entity Resolution; SAR Synthesis depends on all three; Compliance Critic audits SAR Synthesis.">
+        <defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 10 5 0 10z"/></marker></defs>
+        <path class="e" d="M180 60 L288 60" marker-end="url(#ah)"/>
+        <path class="e" d="M400 60 C480 60 540 75 575 103" marker-end="url(#ah)"/>
+        <path class="e" d="M105 30 C105 -5 615 -5 615 103" marker-end="url(#ah)"/>
+        <path class="e" d="M180 190 C400 190 450 135 538 135" marker-end="url(#ah)"/>
+        <path class="e" d="M690 135 L718 135" marker-end="url(#ah)"/>
+        <rect x="30" y="30" width="150" height="60" rx="12"/><text x="105" y="56" text-anchor="middle">Entity Resolution</text><text class="sub" x="105" y="74" text-anchor="middle">UBO · shared devices</text>
+        <rect x="290" y="30" width="110" height="60" rx="12"/><text x="345" y="56" text-anchor="middle">OSINT</text><text class="sub" x="345" y="74" text-anchor="middle">media · TBML</text>
+        <rect x="30" y="160" width="150" height="60" rx="12"/><text x="105" y="186" text-anchor="middle">Forensics</text><text class="sub" x="105" y="204" text-anchor="middle">dwell · pass-through</text>
+        <rect x="540" y="105" width="150" height="60" rx="12"/><text x="615" y="131" text-anchor="middle">SAR Synthesis</text><text class="sub" x="615" y="149" text-anchor="middle">FinCEN-style draft</text>
+        <rect x="720" y="105" width="120" height="60" rx="12"/><text x="780" y="131" text-anchor="middle">Compliance</text><text class="sub" x="780" y="149" text-anchor="middle">Critic</text>
+        <text class="sub" x="430" y="240" text-anchor="middle">Supervisor plans this five-task DAG; Entity Resolution and Forensics have no dependencies</text>
+      </svg>
+    </div>
+
+    <div class="grid g3">
+      <div class="card agent"><div class="ic">1</div><div><h3>Entity Resolution &amp; KYC</h3><p>Clusters shared devices and unrolls ownership trees: <code>C_effective = Π M_ownership</code>. Four shells at ~24% each still resolve to one person controlling 100%.</p></div></div>
+      <div class="card agent"><div class="ic">2</div><div><h3>Transaction Forensics</h3><p>Dwell time under 120 s, pass-through ratio above 0.90, peeling chains, circular loops and sub-$10k structuring.</p></div></div>
+      <div class="card agent"><div class="ic">3</div><div><h3>OSINT &amp; Adverse Media</h3><p>Searches media for parties and unmasked controllers; flags trade-based laundering when invoice price deviates &gt; 25% from benchmark.</p></div></div>
+      <div class="card agent"><div class="ic">4</div><div><h3>SAR Synthesis</h3><p>Drafts a five-part narrative, maps typologies to suspicious-activity codes and builds the event timeline.</p></div></div>
+      <div class="card agent"><div class="ic">5</div><div><h3>Compliance Critic</h3><p>Checks every claim against the evidence dossier. The design goal is entailment ≥ 0.90 per claim, to eliminate hallucinated allegations.</p></div></div>
+      <div class="card agent"><div class="ic">★</div><div><h3>Supervisor</h3><p>Plans the DAG, runs a circuit breaker (three failures → straight to a human) and may auto-clear only with no severe evidence and <code>S_final &lt; 0.45</code>.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="walkthrough">
+  <div class="wrap">
+    <div class="eyebrow">Step by step</div>
+    <h2>Two transactions, two very different paths.</h2>
+    <div class="tabs" role="tablist" aria-label="Walkthrough scenarios">
+      <button role="tab" aria-selected="true" data-w="0">Sanctions hit · TXN-SANC-001</button>
+      <button role="tab" aria-selected="false" data-w="1">Peeling chain · TXN-PEEL-001</button>
+    </div>
+    <div class="card"><ol class="steps" id="steps" aria-live="polite"></ol></div>
+  </div>
+</section>
+
+<section id="typologies">
+  <div class="wrap">
+    <div class="eyebrow">Coverage</div>
+    <h2>Eight evasion typologies, each with a one-click simulation.</h2>
+    <div class="grid g4" id="typGrid"></div>
+  </div>
+</section>
+
+<section id="governance">
+  <div class="wrap">
+    <div class="eyebrow">Governance</div>
+    <h2>Built to be explained and audited.</h2>
+    <div class="grid g3">
+      <div class="card"><h3>Cryptographic audit ledger</h3><p style="color:var(--muted);margin:0">Every stage appends a SHA-256 hash-chained block. Change any historical record and every later hash breaks; a verify endpoint finds the first corrupted block.</p></div>
+      <div class="card"><h3>Model risk management</h3><p style="color:var(--muted);margin:0">A registry tracks champion / challenger / shadow models in the spirit of SR 11-7, and a shadow validator flags transactions where models differ by more than 0.15.</p></div>
+      <div class="card"><h3>Drift detection</h3><p style="color:var(--muted);margin:0">Population Stability Index and Wasserstein distance for covariate drift, Page-Hinkley for concept drift, with a recommended action.</p></div>
+      <div class="card"><h3>Human-only filing</h3><p style="color:var(--muted);margin:0">Only a case in <code>SAR_APPROVED</code> can be submitted. Overrides require a reason code and written justification. Enforced in code, not convention.</p></div>
+      <div class="card"><h3>Five-dimension metrics</h3><p style="color:var(--muted);margin:0">Business impact, system engineering, RAG triad, agentic behavior and ML quality (PR-AUC, calibration, Brier score) are all measured.</p></div>
+      <div class="card"><h3>Prompt governance</h3><p style="color:var(--muted);margin:0">Versioned prompt templates with a groundedness benchmark and one-call rollback to a certified earlier version.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="honesty">
+  <div class="wrap">
+    <div class="eyebrow">Transparency</div>
+    <h2>What is real, and what is simulated.</h2>
+    <p class="lead">This is a reference architecture and prototype, not a production AML system. Here is the honest picture.</p>
+    <div class="cols">
+      <div class="card real">
+        <h3>Implemented &amp; tested</h3>
+        <ul>
+          <li>Full tier cascade and triage logic, end to end</li>
+          <li>Sanctions matcher (Jaro-Winkler, Soundex, aliases) and CTR / wire / velocity / jurisdiction rules</li>
+          <li>Feature store, knowledge graph, tokenizer and tamper-evident audit chain</li>
+          <li>Recursive UBO unroller, TBML price check, SAR payload builder</li>
+          <li>Human approve / override workflow with an enforced state machine</li>
+          <li>PSI, Wasserstein, Page-Hinkley, ECE and Brier calculations</li>
+          <li>Circuit breaker and safe-degradation fallback</li>
+          <li>50 automated tests</li>
+        </ul>
+      </div>
+      <div class="card sim">
+        <h3>Simulated stand-ins</h3>
+        <ul>
+          <li>Kafka, Redis, Neo4j, BigQuery and Vertex AI are in-memory structures and JSON files</li>
+          <li>Models are real scikit-learn but fitted at startup on synthetic data</li>
+          <li>The "GNN" is a rule-weighted topological scorer, not a trained RGCN / GAT</li>
+          <li>Agents are deterministic Python components; no LLM is called yet</li>
+          <li>The Critic uses lexical overlap, not true entailment</li>
+          <li>Dashboard business / throughput numbers are seeded samples and design targets, not benchmarks</li>
+          <li>Regulator acceptance in the SAR gateway is simulated</li>
+        </ul>
+      </div>
+    </div>
+    <div class="notice"><b>Next steps on the roadmap:</b> LLM-driven tool-using agents on a zero-retention endpoint, an NLI-based critic, a trained graph model, real labeled data with temporal backtesting, and production infrastructure.</div>
+  </div>
+</section>
+
+<section id="run">
+  <div class="wrap">
+    <div class="eyebrow">Get started</div>
+    <h2>Run it locally in a minute.</h2>
+    <div class="grid g2">
+      <div>
+<pre><span class="c"># Python 3.11+</span>
+git clone https://github.com/sadiqgpasha89/Anti-Money-Laundering.git
+cd Anti-Money-Laundering
+uv venv .venv &amp;&amp; source .venv/bin/activate
+uv pip install -r requirements.txt
+uvicorn src.api.main:app --port 8080</pre>
+        <p style="color:var(--muted);font-size:.94rem">Open <code>http://localhost:8080/</code> for the investigator cockpit (seven tabs: live stream, cases, agent swarm, metrics, MLOps, typologies, audit) and <code>/docs</code> for the 29-endpoint OpenAPI explorer.</p>
+      </div>
+      <div class="card">
+        <h3>Explore further</h3>
+        <ul style="padding-left:1.2em;margin:0">
+          <li><a href="https://github.com/sadiqgpasha89/Anti-Money-Laundering">Source code on GitHub</a></li>
+          <li><a href="https://github.com/sadiqgpasha89/Anti-Money-Laundering/blob/main/README.md">README &amp; architecture highlights</a></li>
+          <li><a href="https://github.com/sadiqgpasha89/Anti-Money-Laundering/blob/main/medium-article-aml.md">Full write-up (article)</a></li>
+          <li><a href="https://github.com/sadiqgpasha89/Anti-Money-Laundering/blob/main/aml-diagrams.md">Mermaid architecture &amp; sequence diagrams</a></li>
+          <li><a href="https://github.com/sadiqgpasha89/Anti-Money-Laundering/blob/main/anti_money_laundering_aml_hybrid_architecture_specification.md">Full architecture specification</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    Sentinel AML is an educational reference architecture and is not legal or compliance advice.
+    · <a href="https://github.com/sadiqgpasha89/Anti-Money-Laundering">sadiqgpasha89/Anti-Money-Laundering</a>
+  </div>
+</footer>
+
+<script>
+(function(){
+  // ---- Tier panels
+  var tiers=[
+    {c:'t1',sla:'Target p99 &lt; 20 ms',title:'Tier 1 · Deterministic rules engine',items:[
+      '<b>Sanctions screening</b> of sender and receiver with Jaro-Winkler, Levenshtein and Soundex, including watch-list aliases.',
+      '<b>Embargoed jurisdictions</b> and failed-authentication bursts are automatic hard stops.',
+      '<b>Statutory CTR:</b> cash deposits of $10,000+ trigger mandatory reporting (a flag, not a freeze).',
+      '<b>High-value wires</b> of $500,000+ get priority review; FATF high-risk jurisdictions are flagged.',
+      'A hard stop sets status <code>HOLD</code> and freezes the payment; later tiers cannot override it.']},
+    {c:'t2',sla:'Target p99 &lt; 100 ms',title:'Tier 2 · ML &amp; graph inference',items:[
+      '<b>Supervised gradient boosting</b> recognizes known laundering patterns.',
+      '<b>Autoencoder</b> trained on normal behavior catches zero-day patterns and sleeper accounts.',
+      '<b>Graph scorer</b> looks at shared-device rings, circular flows, peeling chains, fan-in / fan-out hubs and PageRank.',
+      'Blended into a calibrated <code>S_final</code>; below 0.35 the transaction is approved with no alert.',
+      'Every score comes with SHAP-style attributions and a counterfactual explanation.']},
+    {c:'t3',sla:'Alerts with S_final ≥ 0.35',title:'Tier 3 · Multi-agent investigation swarm',items:[
+      'A <b>Supervisor</b> plans a five-task DAG; Entity Resolution and Forensics run first, then OSINT, SAR synthesis and the Critic.',
+      'Agents unroll hidden ownership, trace fund flows, check adverse media and draft a FinCEN-style SAR narrative.',
+      'The <b>Compliance Critic</b> checks each claim against evidence to prevent hallucinated allegations.',
+      'A <b>circuit breaker</b> routes straight to a human after three agent failures, so a broken agent can slow things down but never silently drop a case.']},
+    {c:'t4',sla:'Every escalation',title:'Tier 4 · Human-in-the-loop cockpit',items:[
+      'Analysts see the evidence dossier, graph topology, counterfactual and draft SAR in one place.',
+      '<b>Approve</b> (optionally editing the narrative) or <b>override</b> with a mandatory reason code and justification.',
+      'Only an approved case can be submitted; the gateway returns a SHA-256 filing receipt.',
+      'The system may clear obvious false positives with an auditable rationale, but <b>it can never file a SAR without human approval</b>.']}
+  ];
+  var tabs=document.querySelectorAll('.tier'),panel=document.getElementById('tierPanel');
+  function showTier(i){
+    var t=tiers[i];
+    tabs.forEach(function(b,k){b.setAttribute('aria-selected',k===i)});
+    panel.style.setProperty('--c','var(--'+t.c+')');
+    panel.innerHTML='<span class="sla">'+t.sla+'</span><h3>'+t.title+'</h3><ul>'+t.items.map(function(x){return '<li>'+x+'</li>'}).join('')+'</ul>';
+  }
+  tabs.forEach(function(b){b.addEventListener('click',function(){showTier(+b.dataset.tier)})});
+  showTier(0);
+
+  // ---- Tokenizer demo (illustrative hash only)
+  var pii=document.getElementById('pii'),tok=document.getElementById('tok');
+  function h(str){var a=0x811c9dc5,b=0x1b873593;for(var i=0;i<str.length;i++){a^=str.charCodeAt(i);a=Math.imul(a,16777619);b=Math.imul(b^a,2246822519)}
+    return ((a>>>0).toString(16).padStart(8,'0')+(b>>>0).toString(16).padStart(8,'0')).slice(0,12).toUpperCase()}
+  function upd(){var v=pii.value.trim().toLowerCase().replace(/\s+/g,' ');tok.textContent=v?'TOK_NAME_'+h('name:'+v):'—'}
+  pii.addEventListener('input',upd);upd();
+
+  // ---- Score calculator
+  var s=[1,2,3].map(function(n){return document.getElementById('s'+n)});
+  function calc(){
+    var v=s.map(function(x){return +x.value});
+    [1,2,3].forEach(function(n,i){document.getElementById('v'+n).textContent=v[i].toFixed(2)});
+    var f=0.4*v[0]+0.3*v[1]+0.3*v[2];
+    document.getElementById('final').textContent=f.toFixed(2);
+    document.getElementById('needle').style.left=(f*100)+'%';
+    var r=document.getElementById('route'),n=document.getElementById('routeNote'),txt,note,bg,fg;
+    if(f<0.35){txt='Approved · no alert';note='The vast majority of traffic ends here, within milliseconds.';bg='var(--t4-soft)';fg='var(--t4)'}
+    else if(f<0.70){txt='Alert · TRIAGING';note='Sent to the agent swarm; may be auto-cleared if there is no severe evidence and S_final < 0.45.';bg='var(--warn-soft)';fg='var(--warn)'}
+    else if(f<0.85){txt='Escalated to human';note='Swarm still runs to assemble the evidence dossier for the analyst.';bg='var(--t1-soft)';fg='var(--danger)'}
+    else{txt='CRITICAL · escalated to human';note='Highest tier. Swarm assembles the dossier and the case goes to the cockpit.';bg='var(--t1-soft)';fg='var(--danger)'}
+    r.textContent=txt;r.style.background=bg;r.style.color=fg;n.textContent=note;
+  }
+  s.forEach(function(x){x.addEventListener('input',calc)});
+  document.querySelectorAll('.presets .chip').forEach(function(c){c.addEventListener('click',function(){
+    c.dataset.p.split(',').forEach(function(val,i){s[i].value=val});calc()})});
+  calc();
+
+  // ---- Walkthrough
+  var W=[[
+    ['p','Ingest','A $45,000 SWIFT wire from a person whose name matches an OFAC SDN entry is normalized into the canonical model.'],
+    ['p','Pipeline','Graph and feature store are updated and an <code>EVENT_INGRESS</code> block is written to the audit ledger.'],
+    ['t1','Tier 1','Both parties are screened. The sender matches the sanctions list (<code>RULE_SANC_001</code>, hard stop) and also trips the high-risk-jurisdiction rule.'],
+    ['t1','Decision','Status becomes <code>HOLD</code>. In the target design the payment is frozen at the core-banking ledger.'],
+    ['t3','Swarm','<b>Bypassed.</b> The decision is statutory, not probabilistic, so the triage gate raises a sanctions alert immediately.']
+  ],[
+    ['p','Ingest','A $185,000 instant ACH payment from a logistics company, with a 45-second dwell time and 0.98 throughput ratio.'],
+    ['t1','Tier 1','No rule fires, so the status is <code>PASSED</code>. A static rule sees nothing wrong, which is exactly the problem.'],
+    ['t2','Tier 2','Supervised 0.87, autoencoder 1.00, graph 0.82 → <code>S_final = 0.894</code>, tier <b>CRITICAL</b>.'],
+    ['t3','Forensics','Dwell time 45 s (&lt; 120 s) and throughput 0.98 (&gt; 0.90) flag a <b>peeling chain</b>.'],
+    ['t3','OSINT &amp; SAR','Adverse media is searched, then a narrative and activity codes (rapid movement of funds, layering) are drafted.'],
+    ['t3','Critic','Groundedness 0.92 in the sample run; the draft is approved.'],
+    ['t3','Determination','Severe evidence is present, so the case is <code>ESCALATED_HUMAN</code>.'],
+    ['t4','Analyst','Reviews the dossier in the cockpit, approves or overrides; the decision is hashed into the ledger. If approved, the gateway submits and returns a SHA-256 receipt.']
+  ]];
+  var steps=document.getElementById('steps'),wt=document.querySelectorAll('[data-w]');
+  function showW(i){
+    wt.forEach(function(b,k){b.setAttribute('aria-selected',k===i)});
+    steps.innerHTML=W[i].map(function(r){return '<li><span class="tag '+r[0]+'">'+r[1].toUpperCase()+'</span>'+r[2]+'</li>'}).join('');
+  }
+  wt.forEach(function(b){b.addEventListener('click',function(){showW(+b.dataset.w)})});showW(0);
+
+  // ---- Typologies
+  var T=[
+    ['Smurfing & structuring','Sub-$10,000 deposits spread across people and branches.','Rolling velocity ratios + graph fan-in aggregation'],
+    ['Rapid peeling chains','Funds hop through accounts in seconds, peeling off slices.','Dwell &lt; 120 s and &gt; 90% throughput, collapsed into one event'],
+    ['Sleeper & mule networks','Dormant accounts that suddenly burst with volume.','Autoencoder reconstruction loss above threshold'],
+    ['Synthetic identity rings','Ghost identities cross-guaranteeing credit lines.','Multigraph clustering on shared IMEI / MAC / phone hashes'],
+    ['Fractional UBO concealment','Ownership split into &lt; 25% stakes across offshore shells.','Entity agent unrolls the tree: C = Π ownership'],
+    ['Crypto-to-fiat mixer bridges','Mixer or non-compliant VASP proceeds off-ramped to fiat.','Blockchain-intelligence forensics tooling'],
+    ['Trade-based laundering','Over- or under-invoiced goods move value across borders.','OSINT commodity benchmark price deviation &gt; 25%'],
+    ['Adversarial ML perturbations','Transactions shaped to sit just under a decision boundary.','Ensemble diversity: autoencoder + supervised + graph']
+  ];
+  document.getElementById('typGrid').innerHTML=T.map(function(t,i){
+    return '<div class="card typ"><div class="num">0'+(i+1)+'</div><h3>'+t[0].replace('&','&amp;')+'</h3><p>'+t[1]+'</p><div class="catch"><b>Caught by:</b> '+t[2]+'</div></div>'}).join('');
+})();
+</script>
+</body>
+</html>

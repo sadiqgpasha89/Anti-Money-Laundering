@@ -2,6 +2,8 @@
 
 A production-grade, enterprise-scale Anti-Money Laundering (AML) platform designed for hybrid cloud deployments (**On-Premises OpenStack** and **Google Cloud Platform [GCP]**). The system implements a three-tier defense cascade combining ultra-low-latency deterministic rules, ensemble machine learning with topological Graph Neural Networks (GNN), and an autonomous cognitive multi-agent swarm.
 
+> **🌐 Live use-case page:** [https://sadiqgpasha89.github.io/Anti-Money-Laundering](https://sadiqgpasha89.github.io/Anti-Money-Laundering) — an interactive walkthrough of the architecture, scoring, agent swarm and typologies.
+
 ---
 
 ## 1. Architectural Highlights
